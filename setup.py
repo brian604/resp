@@ -39,10 +39,15 @@ semantic_search_deps = [
     'faiss-cpu>=1.7.4',
 ]
 
+# Optional dependencies for Telegram bot
+telegram_bot_deps = [
+    'python-telegram-bot>=22.0',
+]
+
 setup(
     name='resp',
-    version='0.2.0',
-    description='Research Papers Search, Summarization, and Semantic Search',
+    version='0.2.1',
+    description='Research Papers Search, Summarization, Semantic Search, and Personalized Discovery',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Ankit Pal',
@@ -59,7 +64,8 @@ setup(
         'summarization': summarization_deps,
         'local': local_models_deps,
         'semantic': semantic_search_deps,
-        'all': summarization_deps + local_models_deps + semantic_search_deps,
+        'telegram': telegram_bot_deps + summarization_deps,  # Telegram bot needs OpenAI for scoring
+        'all': summarization_deps + local_models_deps + semantic_search_deps + telegram_bot_deps,
     },
     classifiers=[
         'Development Status :: 4 - Beta',

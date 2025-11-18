@@ -38,6 +38,15 @@
 - **Cost-Optimized**: Intelligent caching to minimize API costs
 - **Daily Digests**: Automatically discover relevant new papers
 
+### 🤖 Telegram Bot (NEW!)
+- **Interactive Setup**: Create research profiles through conversational interface
+- **On-Demand Digests**: Get personalized paper recommendations via Telegram
+- **Scheduled Delivery**: Receive daily digests at your preferred time
+- **Rich Formatting**: Papers with relevance scores and reasoning
+- **Easy Commands**: Simple `/digest`, `/profile`, `/search` commands
+- **Usage Tracking**: Monitor API costs and discovery stats
+- **📖 [Full Documentation](TELEGRAM_BOT.md)**
+
 ## Installation
 
 ### Basic Installation
@@ -58,6 +67,9 @@ pip install -e ".[local]"
 
 # For semantic search and re-ranking
 pip install -e ".[semantic]"
+
+# For Telegram bot (includes summarization)
+pip install -e ".[telegram]"
 
 # Install everything
 pip install -e ".[all]"
@@ -310,6 +322,43 @@ ranked.to_csv("daily_digest.csv")
 
 print(f"Found {len(ranked)} highly relevant papers today!")
 ```
+
+### Telegram Bot
+
+Get personalized paper digests delivered directly to Telegram!
+
+#### Setup
+
+```bash
+# 1. Install with Telegram support
+pip install -e ".[telegram]"
+
+# 2. Create bot with @BotFather on Telegram and get token
+
+# 3. Set environment variables
+export TELEGRAM_BOT_TOKEN='your-bot-token'
+export OPENAI_API_KEY='your-openai-key'
+
+# 4. Run the bot
+python examples/telegram_bot_example.py
+```
+
+#### Using the Bot
+
+```
+1. Find your bot on Telegram
+2. Send /start
+3. Send /ml (or /nlp, /cv) to load a profile template
+4. Send /digest to get personalized papers!
+
+Other commands:
+/profile - Create custom research profile
+/schedule 08:00 - Get daily digests at 8 AM UTC
+/threshold 7.5 - Set relevance threshold
+/stats - View usage statistics
+```
+
+**📖 [Full Telegram Bot Documentation](TELEGRAM_BOT.md)** - Complete guide with examples, deployment options, and troubleshooting.
 
 ## Supported Paper Sources
 
