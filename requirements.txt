@@ -52,3 +52,9 @@ openai>=1.0.0
 # transformers>=4.30.0
 # torch>=2.0.0
 # llama-cpp-python>=0.2.0
+
+# Semantic Search (optional)
+# Install with: pip install resp[semantic]
+# For semantic search and re-ranking:
+# sentence-transformers>=2.2.0
+# faiss-cpu>=1.7.4  # or faiss-gpu for GPU support

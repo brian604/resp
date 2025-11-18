@@ -1,5 +1,5 @@
-<h2 align="center">RESP: Research Papers Search and Summarization</h2>
-<h4 align="center">Fetch and Summarize Academic Research Papers from Multiple Sources</h4>
+<h2 align="center">RESP: Research Papers Search, Summarization & Semantic Search</h2>
+<h4 align="center">Fetch, Summarize, and Semantically Search Academic Research Papers</h4>
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GitHub commit](https://img.shields.io/github/last-commit/monk1337/resp)](https://github.com/monk1337/resp/commits/main)
@@ -15,12 +15,20 @@
 - Get citations and related papers from Google Scholar
 - Find connected papers using similarity graphs (ConnectedPapers.com)
 
-### 🤖 AI Summarization (NEW!)
+### 🤖 AI Summarization
 - **OpenAI API Support**: Use GPT models for high-quality summarization
 - **OpenAI-Compatible APIs**: Support for DeepSeek, Groq, and other compatible services
 - **Local Models**: Run summarization locally using Transformers or llama.cpp
 - **Structured Summaries**: Generate concise summaries, key points, and TL;DRs
 - **Batch Processing**: Summarize multiple papers efficiently
+
+### 🎯 Semantic Search (NEW!)
+- **Semantic Re-ranking**: Improve keyword search results with semantic similarity
+- **Vector Database**: Build searchable index with FAISS for fast similarity search
+- **Multiple Embeddings**: Support for SentenceTransformers and OpenAI embeddings
+- **Hybrid Search**: Combine keyword and semantic search for best results
+- **Specialized Models**: Use scientific paper embeddings (SPECTER, etc.)
+- **Persistent Storage**: Save and load vector indices
 
 ## Installation
 
@@ -31,13 +39,17 @@ cd resp
 pip install -r requirements.txt && pip install -e .
 ```
 
-### With AI Summarization
+### Optional Features
+
 ```shell
-# For OpenAI and compatible APIs
+# For AI Summarization (OpenAI and compatible APIs)
 pip install -e ".[summarization]"
 
-# For local models (transformers)
+# For local summarization models (transformers)
 pip install -e ".[local]"
+
+# For semantic search and re-ranking
+pip install -e ".[semantic]"
 
 # Install everything
 pip install -e ".[all]"
@@ -137,6 +149,73 @@ resp.set_summarizer('openai')
 
 # Summarize the papers
 summarized_papers = resp.summarize_papers(papers)
+```
+
+### Semantic Search
+
+#### Semantic Re-ranking
+```python
+from resp import Resp
+
+# Initialize with semantic search enabled
+resp = Resp(enable_semantic_search=True)
+
+# Search for papers
+query = "attention mechanisms in transformers"
+papers = resp.arxiv_direct(query, max_pages=2)
+
+# Re-rank by semantic similarity
+reranked = resp.semantic_rerank(query, papers, top_k=10)
+
+# Papers are now sorted by semantic relevance
+for i, paper in reranked.iterrows():
+    print(f"{paper['title']} - Score: {paper['semantic_score']:.4f}")
+```
+
+#### Vector Database Search
+```python
+from resp import Resp
+
+resp = Resp()
+
+# Initialize vector store
+resp.init_vector_store(
+    embedder_model="multi-qa-MiniLM-L6-cos-v1",
+    index_type="flat"  # or 'hnsw' for larger datasets
+)
+
+# Collect and index papers
+papers = resp.arxiv_direct("machine learning", max_pages=5)
+resp.build_vector_index(papers)
+
+# Search by semantic similarity (no keyword matching needed!)
+results = resp.semantic_search("neural network optimization", k=10)
+
+# Save index for later
+resp.save_vector_index("my_paper_index")
+
+# Load index later
+resp.load_vector_index("my_paper_index")
+```
+
+#### Hybrid Search (Best of Both Worlds)
+```python
+from resp import Resp
+from resp.semantic_search import SemanticReranker, SentenceTransformerEmbedder
+
+# Create reranker with hybrid scoring
+embedder = SentenceTransformerEmbedder()
+reranker = SemanticReranker(
+    embedder=embedder,
+    hybrid_alpha=0.7  # 70% semantic, 30% original ranking
+)
+
+resp = Resp()
+papers = resp.arxiv_direct("deep learning", max_pages=2)
+
+# Re-rank with hybrid scoring
+papers_list = papers.to_dict('records')
+hybrid_results = reranker.rerank("neural networks", papers_list, top_k=10)
 ```
 
 ## Supported Paper Sources
@@ -295,12 +374,29 @@ RESP works with any OpenAI-compatible API by setting a custom `base_url`:
 - Any GGUF format model
 - Llama, Mistral, Phi, etc.
 
+### Semantic Search Embedding Models
+
+**SentenceTransformers models** (require `pip install sentence-transformers`):
+- `multi-qa-MiniLM-L6-cos-v1` - Optimized for question-answer/retrieval (384 dim) **[Recommended]**
+- `all-MiniLM-L6-v2` - Fast, lightweight, general purpose (384 dim)
+- `all-mpnet-base-v2` - Higher quality, slower (768 dim)
+- `allenai-specter` - Specialized for scientific papers (768 dim)
+- `sentence-transformers/gtr-t5-base` - Good for academic papers
+- Any model from [Hugging Face MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard)
+
+**OpenAI embeddings** (via API):
+- `text-embedding-3-small` - 1536 dim, cost-effective
+- `text-embedding-3-large` - 3072 dim, highest quality
+- `text-embedding-ada-002` - 1536 dim, previous generation
+
 ## Examples
 
 Check the `examples/` directory for more detailed examples:
 
 ```python
-# See examples/api_uses.py for comprehensive examples
+# See examples/api_uses.py for comprehensive search examples
+# See examples/summarization_examples.py for AI summarization examples
+# See examples/semantic_search_examples.py for semantic search examples
 # Or open examples/Api_examples.ipynb in Jupyter
 ```
 
@@ -310,11 +406,19 @@ Check the `examples/` directory for more detailed examples:
 
 #### Constructor
 ```python
-Resp(api_key=None, config=None, summarizer=None)
+Resp(
+    api_key=None,
+    config=None,
+    summarizer=None,
+    enable_semantic_search=False,
+    embedder_model="multi-qa-MiniLM-L6-cos-v1"
+)
 ```
 - `api_key`: SerpAPI key (optional)
 - `config`: Config object (optional)
 - `summarizer`: 'openai', 'local', or None
+- `enable_semantic_search`: Enable semantic re-ranking
+- `embedder_model`: SentenceTransformers model name
 
 #### Methods
 
@@ -335,6 +439,16 @@ Resp(api_key=None, config=None, summarizer=None)
 **Summarization Methods:**
 - `set_summarizer(summarizer_type)` - Set or change summarizer
 - `summarize_papers(papers_df)` - Add summaries to papers DataFrame
+
+**Semantic Search Methods:**
+- `enable_semantic_search(embedder_model)` - Enable semantic re-ranking
+- `semantic_rerank(query, papers_df, top_k)` - Re-rank papers by semantic similarity
+- `init_vector_store(embedder_model, index_type)` - Initialize vector database
+- `build_vector_index(papers_df)` - Build vector index from papers
+- `semantic_search(query, k)` - Search vector store for similar papers
+- `add_to_vector_index(papers_df)` - Add papers to existing index
+- `save_vector_index(directory)` - Save index to disk
+- `load_vector_index(directory)` - Load index from disk
 
 ## Citation
 

@@ -33,10 +33,16 @@ local_models_deps = [
     'torch>=2.0.0',
 ]
 
+# Optional dependencies for semantic search
+semantic_search_deps = [
+    'sentence-transformers>=2.2.0',
+    'faiss-cpu>=1.7.4',
+]
+
 setup(
     name='resp',
-    version='0.1.0',
-    description='Research Papers Search and Summarization',
+    version='0.2.0',
+    description='Research Papers Search, Summarization, and Semantic Search',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Ankit Pal',
@@ -52,7 +58,8 @@ setup(
     extras_require={
         'summarization': summarization_deps,
         'local': local_models_deps,
-        'all': summarization_deps + local_models_deps,
+        'semantic': semantic_search_deps,
+        'all': summarization_deps + local_models_deps + semantic_search_deps,
     },
     classifiers=[
         'Development Status :: 4 - Beta',

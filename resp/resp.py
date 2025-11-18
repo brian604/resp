@@ -16,15 +16,19 @@ class Resp(object):
         self,
         api_key: Optional[str] = None,
         config: Optional[Config] = None,
-        summarizer: Optional[str] = None
+        summarizer: Optional[str] = None,
+        enable_semantic_search: bool = False,
+        embedder_model: str = "multi-qa-MiniLM-L6-cos-v1"
     ):
         """
-        Initialize RESP with search and optional summarization capabilities.
+        Initialize RESP with search, summarization, and semantic search capabilities.
 
         Args:
             api_key: SerpAPI key for Google Scholar searches
             config: Configuration object (creates default if None)
             summarizer: Summarizer type ('openai', 'local', or None to disable)
+            enable_semantic_search: Enable semantic search/re-ranking
+            embedder_model: Model to use for embeddings (SentenceTransformers model name)
         """
         # Initialize configuration
         self.config = config or Config()
@@ -49,6 +53,55 @@ class Resp(object):
         self._summarizer = None
         if summarizer:
             self._init_summarizer(summarizer)
+
+        # Initialize semantic search components
+        self._semantic_reranker = None
+        self._vector_store = None
+        if enable_semantic_search:
+            self._init_semantic_search(embedder_model)
+
+    def _init_semantic_search(self, embedder_model: str):
+        """Initialize semantic search components."""
+        try:
+            from resp.semantic_search import SentenceTransformerEmbedder, SemanticReranker
+            embedder = SentenceTransformerEmbedder(model_name=embedder_model)
+            self._semantic_reranker = SemanticReranker(embedder=embedder)
+            print(f"Semantic search initialized with model: {embedder_model}")
+        except Exception as e:
+            print(f"Warning: Could not initialize semantic search: {e}")
+            print("Install with: pip install sentence-transformers")
+            self._semantic_reranker = None
+
+    def enable_semantic_search(self, embedder_model: str = "multi-qa-MiniLM-L6-cos-v1"):
+        """
+        Enable semantic search/re-ranking.
+
+        Args:
+            embedder_model: SentenceTransformers model name
+        """
+        self._init_semantic_search(embedder_model)
+
+    def init_vector_store(
+        self,
+        embedder_model: str = "multi-qa-MiniLM-L6-cos-v1",
+        index_type: str = "flat"
+    ):
+        """
+        Initialize vector store for semantic search.
+
+        Args:
+            embedder_model: SentenceTransformers model name
+            index_type: FAISS index type ('flat', 'ivf', 'hnsw')
+        """
+        try:
+            from resp.semantic_search import SentenceTransformerEmbedder, VectorStore
+            embedder = SentenceTransformerEmbedder(model_name=embedder_model)
+            self._vector_store = VectorStore(embedder=embedder, index_type=index_type)
+            print(f"Vector store initialized with {index_type} index")
+        except Exception as e:
+            print(f"Warning: Could not initialize vector store: {e}")
+            print("Install with: pip install sentence-transformers faiss-cpu")
+            self._vector_store = None
 
     def _init_summarizer(self, summarizer_type: str):
         """Initialize the specified summarizer."""
@@ -106,6 +159,107 @@ class Resp(object):
         summarized_papers = self._summarizer.summarize_batch(papers_list)
 
         return pd.DataFrame(summarized_papers)
+
+    def semantic_rerank(
+        self,
+        query: str,
+        papers_df: pd.DataFrame,
+        top_k: Optional[int] = None
+    ) -> pd.DataFrame:
+        """
+        Re-rank papers using semantic similarity.
+
+        Args:
+            query: Search query
+            papers_df: DataFrame of papers to re-rank
+            top_k: Number of top results to return
+
+        Returns:
+            Re-ranked DataFrame with semantic_score column
+        """
+        if self._semantic_reranker is None:
+            print("Warning: Semantic search not initialized.")
+            print("Enable with: resp.enable_semantic_search()")
+            return papers_df
+
+        return self._semantic_reranker.rerank_dataframe(query, papers_df, top_k)
+
+    def semantic_search(
+        self,
+        query: str,
+        k: int = 20
+    ) -> pd.DataFrame:
+        """
+        Search vector store for papers semantically similar to query.
+
+        Args:
+            query: Search query
+            k: Number of results to return
+
+        Returns:
+            DataFrame of semantically similar papers
+        """
+        if self._vector_store is None:
+            print("Warning: Vector store not initialized.")
+            print("Initialize with: resp.init_vector_store()")
+            return pd.DataFrame()
+
+        results = self._vector_store.search(query, k=k)
+        return pd.DataFrame(results)
+
+    def build_vector_index(self, papers_df: pd.DataFrame):
+        """
+        Build vector index from papers DataFrame.
+
+        Args:
+            papers_df: DataFrame of papers with title and abstract
+        """
+        if self._vector_store is None:
+            print("Warning: Vector store not initialized.")
+            print("Initialize with: resp.init_vector_store()")
+            return
+
+        papers_list = papers_df.to_dict('records')
+        self._vector_store.build_index(papers_list)
+
+    def add_to_vector_index(self, papers_df: pd.DataFrame):
+        """
+        Add papers to existing vector index.
+
+        Args:
+            papers_df: DataFrame of papers to add
+        """
+        if self._vector_store is None:
+            print("Warning: Vector store not initialized.")
+            return
+
+        papers_list = papers_df.to_dict('records')
+        self._vector_store.add_papers(papers_list)
+
+    def save_vector_index(self, directory: str):
+        """
+        Save vector index to disk.
+
+        Args:
+            directory: Directory to save index
+        """
+        if self._vector_store is None:
+            print("Warning: Vector store not initialized.")
+            return
+
+        self._vector_store.save(directory)
+
+    def load_vector_index(self, directory: str):
+        """
+        Load vector index from disk.
+
+        Args:
+            directory: Directory containing saved index
+        """
+        if self._vector_store is None:
+            self.init_vector_store()
+
+        self._vector_store.load(directory)
 
     def acl(self, keyword, max_pages = None, summarize: bool = False):
         result  = self.engine.google_search(
