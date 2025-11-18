@@ -261,6 +261,137 @@ class Resp(object):
 
         self._vector_store.load(directory)
 
+    # Personalization methods
+
+    def set_research_profile(self, profile):
+        """
+        Set research profile for personalized ranking.
+
+        Args:
+            profile: ResearchProfile instance or path to YAML/JSON file
+        """
+        try:
+            from resp.personalization import ResearchProfile
+
+            if isinstance(profile, str):
+                # Load from file
+                if profile.endswith('.yaml') or profile.endswith('.yml'):
+                    self._research_profile = ResearchProfile.from_yaml(profile)
+                elif profile.endswith('.json'):
+                    self._research_profile = ResearchProfile.from_json(profile)
+                else:
+                    # Try as template name
+                    self._research_profile = ResearchProfile.from_template(profile)
+            else:
+                self._research_profile = profile
+
+            print(f"Research profile set: {self._research_profile.name}")
+
+        except Exception as e:
+            print(f"Warning: Could not set research profile: {e}")
+            self._research_profile = None
+
+    def rank_by_relevance(
+        self,
+        papers_df: pd.DataFrame,
+        threshold: Optional[float] = None,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None
+    ) -> pd.DataFrame:
+        """
+        Rank papers by relevance to research profile using LLM.
+
+        Args:
+            papers_df: DataFrame with papers
+            threshold: Minimum relevance score (uses profile default if None)
+            api_key: OpenAI API key (optional)
+            base_url: Custom API base URL (optional)
+
+        Returns:
+            DataFrame with relevance scores, sorted by relevance
+        """
+        if not hasattr(self, '_research_profile') or self._research_profile is None:
+            print("Warning: No research profile set. Call set_research_profile() first.")
+            return papers_df
+
+        try:
+            from resp.personalization import RelevanceScorer
+
+            # Initialize scorer
+            scorer = RelevanceScorer(
+                profile=self._research_profile,
+                api_key=api_key,
+                base_url=base_url
+            )
+
+            # Score and rank
+            ranked = scorer.score_dataframe(papers_df, threshold=threshold)
+
+            # Print stats
+            stats = scorer.get_stats()
+            print(f"\nScoring complete:")
+            print(f"  Tokens used: {stats['total_tokens']}")
+            print(f"  Estimated cost: ${stats['estimated_cost_usd']}")
+            print(f"  Papers ranked: {len(ranked)}")
+
+            return ranked
+
+        except Exception as e:
+            print(f"Warning: Could not rank papers: {e}")
+            return papers_df
+
+    def fetch_daily_papers(
+        self,
+        days_back: int = 1,
+        max_papers: int = 100
+    ) -> pd.DataFrame:
+        """
+        Fetch new papers from the last N days based on research profile.
+
+        Args:
+            days_back: Number of days to look back
+            max_papers: Maximum papers to fetch
+
+        Returns:
+            DataFrame of recent papers
+        """
+        if not hasattr(self, '_research_profile') or self._research_profile is None:
+            print("Warning: No research profile set. Call set_research_profile() first.")
+            return pd.DataFrame()
+
+        # Get categories from profile
+        categories = self._research_profile.arxiv_categories
+
+        if not categories:
+            print("Warning: No arXiv categories specified in profile.")
+            return pd.DataFrame()
+
+        # Fetch papers from each category
+        all_papers = []
+
+        for category in categories:
+            try:
+                # Use category as search term
+                papers = self.arxiv_engine.arxiv(
+                    keyword=category,
+                    max_pages=1,
+                    use_api=True,
+                    include_abstract=True
+                )
+
+                if not papers.empty:
+                    papers['category'] = category
+                    all_papers.append(papers)
+
+            except Exception as e:
+                print(f"Warning: Could not fetch papers for {category}: {e}")
+
+        if all_papers:
+            combined = pd.concat(all_papers).drop_duplicates('title')
+            return combined.head(max_papers)
+
+        return pd.DataFrame()
+
     def acl(self, keyword, max_pages = None, summarize: bool = False):
         result  = self.engine.google_search(
             f'site:aclanthology.org {keyword}', 

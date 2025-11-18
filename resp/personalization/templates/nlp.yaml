@@ -1,0 +1,46 @@
+# Natural Language Processing Research Profile Template
+
+profile:
+  name: "NLP Researcher"
+  email: null  # Set your email here
+
+arxiv:
+  subjects:
+    - "cs"  # Computer Science
+  categories:
+    - "cs.CL"  # Computation and Language
+    - "cs.AI"  # Artificial Intelligence
+    - "cs.LG"  # Machine Learning (for NLP methods)
+
+interests:
+  primary:
+    - "Large language models and their applications"
+    - "Prompt engineering and in-context learning"
+    - "Efficient fine-tuning methods (LoRA, QLoRA, adapters)"
+    - "Multilingual and cross-lingual NLP"
+    - "Information extraction and knowledge graphs"
+
+  secondary:
+    - "Question answering and retrieval systems"
+    - "Dialogue systems and conversational AI"
+    - "Text generation and creative applications"
+    - "Bias, fairness, and ethics in language models"
+    - "Low-resource language processing"
+
+  exclusions:
+    - "Pure speech recognition without language understanding"
+    - "Papers focused only on specific programming languages"
+    - "Medical text mining without broader NLP contributions"
+
+scoring:
+  model: "gpt-3.5-turbo"
+  threshold: 6.5  # Slightly higher threshold for focused research
+  max_papers: 50
+  batch_size: 10
+  temperature: 0.3
+
+digest:
+  format: "html"
+  template: "modern"
+  frequency: "daily"
+  time: "08:00 UTC"

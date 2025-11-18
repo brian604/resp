@@ -1,0 +1,46 @@
+# Computer Vision Research Profile Template
+
+profile:
+  name: "Computer Vision Researcher"
+  email: null  # Set your email here
+
+arxiv:
+  subjects:
+    - "cs"  # Computer Science
+  categories:
+    - "cs.CV"  # Computer Vision and Pattern Recognition
+    - "cs.LG"  # Machine Learning
+    - "cs.AI"  # Artificial Intelligence
+
+interests:
+  primary:
+    - "Vision transformers and attention mechanisms in computer vision"
+    - "Multi-modal learning combining vision and language"
+    - "Self-supervised and unsupervised visual representation learning"
+    - "Object detection, segmentation, and instance recognition"
+    - "3D vision and scene understanding"
+
+  secondary:
+    - "Video understanding and action recognition"
+    - "Generative models for images (GANs, diffusion models)"
+    - "Efficient vision models for edge devices"
+    - "Few-shot and zero-shot visual learning"
+    - "Vision for robotics and autonomous systems"
+
+  exclusions:
+    - "Pure medical imaging without general CV contributions"
+    - "Surveillance-specific applications"
+    - "Papers focused only on dataset annotation"
+
+scoring:
+  model: "gpt-3.5-turbo"
+  threshold: 6.0
+  max_papers: 50
+  batch_size: 10
+  temperature: 0.3
+
+digest:
+  format: "html"
+  template: "modern"
+  frequency: "daily"
+  time: "08:00 UTC"

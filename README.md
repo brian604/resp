@@ -1,5 +1,5 @@
-<h2 align="center">RESP: Research Papers Search, Summarization & Semantic Search</h2>
-<h4 align="center">Fetch, Summarize, and Semantically Search Academic Research Papers</h4>
+<h2 align="center">RESP: Research Papers Search, Summarization & Personalization</h2>
+<h4 align="center">Your AI-Powered Research Assistant for Academic Papers</h4>
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GitHub commit](https://img.shields.io/github/last-commit/monk1337/resp)](https://github.com/monk1337/resp/commits/main)
@@ -22,13 +22,21 @@
 - **Structured Summaries**: Generate concise summaries, key points, and TL;DRs
 - **Batch Processing**: Summarize multiple papers efficiently
 
-### 🎯 Semantic Search (NEW!)
+### 🎯 Semantic Search
 - **Semantic Re-ranking**: Improve keyword search results with semantic similarity
 - **Vector Database**: Build searchable index with FAISS for fast similarity search
 - **Multiple Embeddings**: Support for SentenceTransformers and OpenAI embeddings
 - **Hybrid Search**: Combine keyword and semantic search for best results
 - **Specialized Models**: Use scientific paper embeddings (SPECTER, etc.)
 - **Persistent Storage**: Save and load vector indices
+
+### ⭐ Personalized Discovery (NEW!)
+- **LLM-Based Relevance Scoring**: Rank papers 1-10 based on your research interests
+- **Natural Language Profiles**: Define interests in plain English, not just keywords
+- **Research Templates**: Pre-built profiles for ML, NLP, CV, and more
+- **Smart Filtering**: Specify exclusions and priorities
+- **Cost-Optimized**: Intelligent caching to minimize API costs
+- **Daily Digests**: Automatically discover relevant new papers
 
 ## Installation
 
@@ -218,6 +226,91 @@ papers_list = papers.to_dict('records')
 hybrid_results = reranker.rerank("neural networks", papers_list, top_k=10)
 ```
 
+### Personalized Discovery
+
+#### Using Research Profiles
+```python
+from resp import Resp
+
+# Initialize RESP
+resp = Resp()
+
+# Use a built-in template (ml, nlp, cv)
+resp.set_research_profile("ml")
+
+# Or load your custom profile
+# resp.set_research_profile("my_research_interests.yaml")
+
+# Search for papers
+papers = resp.arxiv_direct("machine learning", max_pages=2)
+
+# Rank by relevance to your interests (1-10 scale)
+ranked = resp.rank_by_relevance(papers, threshold=6.0)
+
+# View results
+for i, paper in ranked.iterrows():
+    score = paper['relevance_score']
+    reasoning = paper['relevance_reasoning']
+    print(f"[{score:.1f}/10] {paper['title']}")
+    print(f"Why relevant: {reasoning}\n")
+```
+
+#### Creating Custom Profiles
+```python
+from resp.personalization import ResearchProfile
+
+# Define your research interests in natural language
+profile = ResearchProfile(
+    name="My Research Profile",
+    email="researcher@example.com",
+    arxiv_categories=["cs.LG", "cs.AI", "cs.CL"],
+
+    primary_interests=[
+        "Large language models and their applications",
+        "Efficient fine-tuning methods like LoRA and QLoRA",
+        "Multi-modal learning combining vision and language"
+    ],
+
+    secondary_interests=[
+        "Model interpretability and explainability",
+        "Reinforcement learning from human feedback"
+    ],
+
+    exclusions=[
+        "Pure theoretical papers without experiments",
+        "Papers focused only on medical imaging"
+    ]
+)
+
+# Save for reuse
+profile.to_yaml("my_interests.yaml")
+
+# Use it
+resp = Resp()
+resp.set_research_profile(profile)
+papers = resp.fetch_daily_papers()  # Get today's papers
+ranked = resp.rank_by_relevance(papers)
+```
+
+#### Daily Digest Workflow
+```python
+from resp import Resp
+
+resp = Resp()
+resp.set_research_profile("nlp")
+
+# Fetch today's papers from your research areas
+papers = resp.fetch_daily_papers(days_back=1, max_papers=50)
+
+# Rank by relevance
+ranked = resp.rank_by_relevance(papers, threshold=7.0)
+
+# Save digest
+ranked.to_csv("daily_digest.csv")
+
+print(f"Found {len(ranked)} highly relevant papers today!")
+```
+
 ## Supported Paper Sources
 
 | Source | Method | Requires SerpAPI |
@@ -397,6 +490,7 @@ Check the `examples/` directory for more detailed examples:
 # See examples/api_uses.py for comprehensive search examples
 # See examples/summarization_examples.py for AI summarization examples
 # See examples/semantic_search_examples.py for semantic search examples
+# See examples/personalization_examples.py for personalized discovery examples
 # Or open examples/Api_examples.ipynb in Jupyter
 ```
 
@@ -449,6 +543,11 @@ Resp(
 - `add_to_vector_index(papers_df)` - Add papers to existing index
 - `save_vector_index(directory)` - Save index to disk
 - `load_vector_index(directory)` - Load index from disk
+
+**Personalization Methods:**
+- `set_research_profile(profile)` - Set research profile (file path or ResearchProfile object)
+- `rank_by_relevance(papers_df, threshold, api_key)` - Rank papers by LLM-based relevance (1-10)
+- `fetch_daily_papers(days_back, max_papers)` - Fetch recent papers from profile categories
 
 ## Citation
 

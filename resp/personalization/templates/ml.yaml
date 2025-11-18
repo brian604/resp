@@ -1,0 +1,44 @@
+# Machine Learning Research Profile Template
+
+profile:
+  name: "Machine Learning Researcher"
+  email: null  # Set your email here
+
+arxiv:
+  subjects:
+    - "cs"  # Computer Science
+  categories:
+    - "cs.LG"  # Machine Learning
+    - "cs.AI"  # Artificial Intelligence
+    - "stat.ML"  # Statistics - Machine Learning
+
+interests:
+  primary:
+    - "Deep learning architectures and optimization methods"
+    - "Transfer learning and few-shot learning techniques"
+    - "Model efficiency and compression (pruning, quantization, distillation)"
+    - "Explainability and interpretability of ML models"
+
+  secondary:
+    - "Federated learning and privacy-preserving ML"
+    - "AutoML and neural architecture search"
+    - "Reinforcement learning applications"
+    - "Meta-learning and continual learning"
+
+  exclusions:
+    - "Pure theoretical papers without empirical validation"
+    - "Papers focused solely on specific hardware implementations"
+    - "Domain-specific applications without novel ML contributions"
+
+scoring:
+  model: "gpt-3.5-turbo"
+  threshold: 6.0  # Papers scoring below this are filtered out
+  max_papers: 50  # Maximum papers to score per run
+  batch_size: 10  # Papers per batch
+  temperature: 0.3  # Lower = more consistent scoring
+
+digest:
+  format: "html"
+  template: "modern"
+  frequency: "daily"
+  time: "08:00 UTC"
