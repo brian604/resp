@@ -53,26 +53,26 @@
 ```shell
 git clone https://github.com/monk1337/resp
 cd resp
-pip install -r requirements.txt && pip install -e .
+uv pip install -r requirements.txt && uv pip install -e .
 ```
 
 ### Optional Features
 
 ```shell
 # For AI Summarization (OpenAI and compatible APIs)
-pip install -e ".[summarization]"
+uv pip install -e ".[summarization]"
 
 # For local summarization models (transformers)
-pip install -e ".[local]"
+uv pip install -e ".[local]"
 
 # For semantic search and re-ranking
-pip install -e ".[semantic]"
+uv pip install -e ".[semantic]"
 
 # For Telegram bot (includes summarization)
-pip install -e ".[telegram]"
+uv pip install -e ".[telegram]"
 
 # Install everything
-pip install -e ".[all]"
+uv pip install -e ".[all]"
 ```
 
 ## Quick Start
@@ -331,7 +331,7 @@ Get personalized paper digests delivered directly to Telegram!
 
 ```bash
 # 1. Install with Telegram support
-pip install -e ".[telegram]"
+uv pip install -e ".[telegram]"
 
 # 2. Create bot with @BotFather on Telegram and get token
 
@@ -506,19 +506,19 @@ RESP works with any OpenAI-compatible API by setting a custom `base_url`:
 
 ### Local Model Examples
 
-**Transformers models** (require `pip install transformers torch`):
+**Transformers models** (require `uv pip install transformers torch`):
 - `facebook/bart-large-cnn` - Good general summarizer
 - `google/flan-t5-base` - Instruction-tuned model
 - `philschmid/flan-t5-base-samsum` - Conversation summarization
 - Any Seq2Seq model on Hugging Face
 
-**llama.cpp models** (require `pip install llama-cpp-python`):
+**llama.cpp models** (require `uv pip install llama-cpp-python`):
 - Any GGUF format model
 - Llama, Mistral, Phi, etc.
 
 ### Semantic Search Embedding Models
 
-**SentenceTransformers models** (require `pip install sentence-transformers`):
+**SentenceTransformers models** (require `uv pip install sentence-transformers`):
 - `multi-qa-MiniLM-L6-cos-v1` - Optimized for question-answer/retrieval (384 dim) **[Recommended]**
 - `all-MiniLM-L6-v2` - Fast, lightweight, general purpose (384 dim)
 - `all-mpnet-base-v2` - Higher quality, slower (768 dim)

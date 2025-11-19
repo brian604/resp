@@ -36,7 +36,7 @@ export RESP_BOT_MAX_PAPERS='10'              # Max papers per digest
 ### 3. Install Dependencies
 
 ```bash
-pip install -e ".[telegram]"
+uv pip install -e ".[telegram]"
 ```
 
 ### 4. Run the Bot
@@ -286,7 +286,7 @@ FROM python:3.10-slim
 WORKDIR /app
 COPY . .
 
-RUN pip install -e ".[telegram]"
+RUN uv pip install -e ".[telegram]"
 
 ENV TELEGRAM_BOT_TOKEN=""
 ENV OPENAI_API_KEY=""
